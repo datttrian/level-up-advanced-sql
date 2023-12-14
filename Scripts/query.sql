@@ -1,28 +1,37 @@
--- Find sales of cars which are electric by using a subquery
+-- For each sales person rank the car models they've sold most
 
--- 1. join sales and inventory
-SELECT *
+-- First join the tables to get the necessary data
+SELECT emp.firstName, emp.lastName, mdl.model, sls.salesId
 FROM sales sls
+INNER JOIN employee emp
+  ON sls.employeeId = emp.employeeId
 INNER JOIN inventory inv
-      ON sls.inventoryId = inv.inventoryId
+  ON inv.inventoryId = sls.inventoryId
+INNER JOIN model mdl
+  ON mdl.modelId = inv.modelId
 
--- 2. review the model table
-SELECT *
-FROM model
-limit 10;
-
--- 3. look up the modelId for the electric models
-SELECT modelId
-FROM model
-WHERE EngineType = 'Electric';
-
--- Final query
-SELECT sls.soldDate, sls.salesAmount, inv.colour, inv.year
+-- apply the grouping
+SELECT emp.firstName, emp.lastName, mdl.model,
+  count(model) AS NumberSold
 FROM sales sls
+INNER JOIN employee emp
+  ON sls.employeeId = emp.employeeId
 INNER JOIN inventory inv
-      ON sls.inventoryId = inv.inventoryId
-WHERE inv.modelId IN (
-      SELECT modelId
-      FROM model
-      WHERE EngineType = 'Electric'
-)
+  ON inv.inventoryId = sls.inventoryId
+INNER JOIN model mdl
+  ON mdl.modelId = inv.modelId
+GROUP BY emp.firstName, emp.lastName, mdl.model
+
+-- add in the windowing function
+SELECT emp.firstName, emp.lastName, mdl.model,
+  count(model) AS NumberSold,
+  rank() OVER (PARTITION BY sls.employeeId 
+              ORDER BY count(model) desc) AS Rank
+FROM sales sls
+INNER JOIN employee emp
+  ON sls.employeeId = emp.employeeId
+INNER JOIN inventory inv
+  ON inv.inventoryId = sls.inventoryId
+INNER JOIN model mdl
+  ON mdl.modelId = inv.modelId
+GROUP BY emp.firstName, emp.lastName, mdl.model
