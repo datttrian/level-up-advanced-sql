@@ -1,12 +1,12 @@
--- Find the least and most expensive car sold by each employee this year
+-- Display report for employees who have sold at least 5 cars
 
 SELECT emp.employeeId,
-       emp.firstName,
-       emp.lastName,
+       count(*) AS NumOfCarsSold,
        MIN(salesAmount) AS MinSalesAmount,
        MAX(salesAmount) AS MaxSalesAmount
 FROM sales sls
 INNER JOIN employee emp
-ON sls.employeeId = emp.employeeId
+  ON sls.employeeId = emp.employeeId
 WHERE sls.soldDate >= date('now', 'start of year')
-GROUP BY emp.employeeId, emp.firstName, emp.lastName
+GROUP BY emp.employeeId
+HAVING count(*) > 5
