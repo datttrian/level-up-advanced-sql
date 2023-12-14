@@ -1,10 +1,8 @@
--- Create a list of employees and their immediate managers.
+-- Find sales people who have zero sales
 
-SELECT emp.firstName,
-       emp.lastName,
-       emp.title,
-       mng.firstName AS ManagerFirstName,
-       mng.lastName AS ManagerLastName
+SELECT emp.firstName, emp.lastName, emp.title, emp.startDate, sls.salesId
 FROM employee emp
-INNER JOIN employee mng
-ON emp.managerId = mng.employeeId
+LEFT JOIN sales sls
+ON emp.employeeId = sls.employeeId
+WHERE emp.title = 'Sales Person'
+AND sls.salesId IS NULL;
