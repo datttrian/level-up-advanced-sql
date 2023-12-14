@@ -1,11 +1,10 @@
-SELECT firstName, lastName, title
-FROM employee
-LIMIT 5;
+-- Create a list of employees and their immediate managers.
 
-SELECT model, EngineType
-FROM model
-LIMIT 5;
-
-SELECT sql 
-FROM sqlite_schema 
-WHERE name = 'employee';
+SELECT emp.firstName,
+       emp.lastName,
+       emp.title,
+       mng.firstName AS ManagerFirstName,
+       mng.lastName AS ManagerLastName
+FROM employee emp
+INNER JOIN employee mng
+ON emp.managerId = mng.employeeId
