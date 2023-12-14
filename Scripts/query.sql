@@ -1,20 +1,15 @@
--- List all customers & their sales, even if some data is gone
+-- How many cars has been sold per employee
 
-SELECT cus.firstName, cus.lastName, cus.email, sls.salesAmount, sls.soldDate
-FROM customer cus
-INNER JOIN sales sls
-ON cus.customerId = sls.customerId
-UNION
--- UNION WITH CUSTOMERS WHO HAVE NO SALES
-SELECT cus.firstName, cus.lastName, cus.email, sls.salesAmount, sls.soldDate
-FROM customer cus
-LEFT JOIN sales sls
-ON cus.customerId = sls.customerId
-WHERE sls.salesId IS NULL
-UNION
--- UNION WITH SALES MISSING CUSTOMER DATA
-SELECT cus.firstName, cus.lastName, cus.email, sls.salesAmount, sls.soldDate
+-- start with this query
+SELECT emp.employeeId, emp.firstName, emp.lastName
 FROM sales sls
-LEFT JOIN customer cus
-ON cus.customerId = sls.customerId
-WHERE cus.customerId is NULL;
+INNER JOIN employee emp
+ON sls.employeeId = emp.employeeId
+
+-- then add the group by & count
+SELECT emp.employeeId, emp.firstName, emp.lastName, count(*) as NumOfCarsSold
+FROM sales sls
+INNER JOIN employee emp
+ON sls.employeeId = emp.employeeId
+GROUP BY emp.employeeId, emp.firstName, emp.lastName
+ORDER BY NumOfCarsSold DESC;
