@@ -1,30 +1,18 @@
--- Create a report showing sales per month and an annual total
+-- Displays the number of cars sold this month, and last month
 
--- get the needed data
-SELECT strftime('%Y', soldDate) AS soldYear, 
-       strftime('%m', soldDate) AS soldMonth, 
-       salesAmount
+-- Get the data
+SELECT strftime('%Y-%m', soldDate) AS MonthSold,
+       COUNT(*) AS NumberCarsSold
 FROM sales
+GROUP BY strftime('%Y-%m', soldDate)
 
--- apply the grouping
-SELECT strftime('%Y', soldDate) AS soldYear, 
-       strftime('%m', soldDate) AS soldMonth,
-       SUM(salesAmount) AS salesAmount
+-- Apply the window function
+SELECT strftime('%Y-%m', soldDate) AS MonthSold,
+       COUNT(*) AS NumberCarsSold,
+       LAG (COUNT(*), 1, 0 ) OVER calMonth AS LastMonthCarsSold
 FROM sales
-GROUP BY soldYear, soldMonth
-ORDER BY soldYear, soldMonth
-
--- add the window function - simplify with cte
-with cte_sales as (
-SELECT strftime('%Y', soldDate) AS soldYear, 
-       strftime('%m', soldDate) AS soldMonth,
-       SUM(salesAmount) AS salesAmount
-FROM sales
-GROUP BY soldYear, soldMonth
+GROUP BY strftime('%Y-%m', soldDate)
+WINDOW calMonth AS (
+  ORDER BY strftime('%Y-%m', soldDate)
 )
-SELECT soldYear, soldMonth, salesAmount,
-       SUM(salesAmount) OVER (
-  PARTITION BY soldYear 
-  ORDER BY soldYear, soldMonth) AS AnnualSales_RunningTotal
-FROM cte_sales
-ORDER BY soldYear, soldMonth
+ORDER BY strftime('%Y-%m', soldDate)
