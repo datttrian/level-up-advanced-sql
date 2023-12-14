@@ -1,28 +1,30 @@
--- Find sales of cars which are electric by using a subquery
+-- Create a report showing sales per month and an annual total
 
--- 1. join sales and inventory
-SELECT *
-FROM sales sls
-INNER JOIN inventory inv
-  ON sls.inventoryId = inv.inventoryId
+-- get the needed data
+SELECT strftime('%Y', soldDate) AS soldYear, 
+       strftime('%m', soldDate) AS soldMonth, 
+       salesAmount
+FROM sales
 
--- 2. review the model table
-Select *
-from model
-limit 10;
+-- apply the grouping
+SELECT strftime('%Y', soldDate) AS soldYear, 
+       strftime('%m', soldDate) AS soldMonth,
+       SUM(salesAmount) AS salesAmount
+FROM sales
+GROUP BY soldYear, soldMonth
+ORDER BY soldYear, soldMonth
 
--- 3. lookup the modelId for the electric models
-SELECT modelId
-FROM model
-WHERE EngineType = 'Electric';
-
--- Final query
-SELECT sls.soldDate, sls.salesAmount, inv.colour, inv.year
-FROM sales sls
-INNER JOIN inventory inv
-  ON sls.inventoryId = inv.inventoryId
-WHERE inv.modelId IN (
-  SELECT modelId
-  FROM model
-  WHERE EngineType = 'Electric'
+-- add the window function - simplify with cte
+with cte_sales as (
+SELECT strftime('%Y', soldDate) AS soldYear, 
+       strftime('%m', soldDate) AS soldMonth,
+       SUM(salesAmount) AS salesAmount
+FROM sales
+GROUP BY soldYear, soldMonth
 )
+SELECT soldYear, soldMonth, salesAmount,
+       SUM(salesAmount) OVER (
+  PARTITION BY soldYear 
+  ORDER BY soldYear, soldMonth) AS AnnualSales_RunningTotal
+FROM cte_sales
+ORDER BY soldYear, soldMonth
