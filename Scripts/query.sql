@@ -1,12 +1,12 @@
--- Display report for employees who have sold at least 5 cars
+-- Summarise sales per year by using a CTE
 
-SELECT emp.employeeId,
-       count(*) AS NumOfCarsSold,
-       MIN(salesAmount) AS MinSalesAmount,
-       MAX(salesAmount) AS MaxSalesAmount
-FROM sales sls
-INNER JOIN employee emp
-  ON sls.employeeId = emp.employeeId
-WHERE sls.soldDate >= date('now', 'start of year')
-GROUP BY emp.employeeId
-HAVING count(*) > 5
+WITH cte AS (
+SELECT strftime('%Y', soldDate) AS soldYear,
+       salesAmount
+FROM sales
+)
+SELECT soldYear,
+  FORMAT("$%.2f", sum(salesAmount)) AS AnnualSales
+FROM cte
+GROUP BY soldYear
+ORDER BY soldYear
